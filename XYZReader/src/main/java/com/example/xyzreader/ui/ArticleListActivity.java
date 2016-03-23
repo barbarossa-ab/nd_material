@@ -15,6 +15,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
@@ -80,11 +81,18 @@ public class ArticleListActivity extends AppCompatActivity implements
     }
 
     private boolean mIsRefreshing = false;
+    private boolean mIsUpdating = false;
 
     @Override
     public void onRefresh() {
-        if(!mIsRefreshing) {
+        Log.e("REFRESH", "onRefresh() call");
+
+        if (!mIsUpdating) {
+            Log.e("REFRESH", "mIsUpdateing == false, initiate intent service refresh");
+            mIsUpdating = true;
             refresh();
+        } else {
+            Log.e("REFRESH", "mIsUpdateing == true, do nothing");
         }
     }
 
@@ -93,12 +101,16 @@ public class ArticleListActivity extends AppCompatActivity implements
         public void onReceive(Context context, Intent intent) {
             if (UpdaterService.BROADCAST_ACTION_STATE_CHANGE.equals(intent.getAction())) {
                 mIsRefreshing = intent.getBooleanExtra(UpdaterService.EXTRA_REFRESHING, false);
+                Log.e("REFRESH", "mIsRefreshing == " + mIsRefreshing + ", received broadcast");
                 updateRefreshingUI();
+
+                mIsUpdating = false;
             }
         }
     };
 
     private void updateRefreshingUI() {
+        Log.e("REFRESH", "mIsRefreshing == " + mIsRefreshing + ", updateing refresh layout");
         mSwipeRefreshLayout.setRefreshing(mIsRefreshing);
     }
 

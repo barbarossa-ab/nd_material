@@ -1,12 +1,20 @@
 <resources>
     <!-- detail -->
+    <dimen name="content_layer_elevation">2dp</dimen>
+    <dimen name="picture_overlay_height">122dp</dimen>
     <dimen name="detail_title_text_size">32sp</dimen>
-    <dimen name="detail_body_text_size">22sp</dimen>
+    <dimen name="detail_body_text_size">18sp</dimen>
     <item name="detail_body_line_spacing_multiplier" format="float" type="fraction">1.25</item>
 
-    <dimen name="fab_elevation">2dp</dimen>
+    <dimen name="fab_elevation">6dp</dimen>
     <dimen name="fab_press_translation_z">6dp</dimen>
     <dimen name="fab_margin">24dp</dimen>
+
+    <dimen name="card_margin">4dp</dimen>
+    <dimen name="card_text_side_margin">12dp</dimen>
+    <dimen name="card_text_top_margin">8dp</dimen>
+    <dimen name="card_text_bottom_margin">12dp</dimen>
+    <dimen name="card_text_between_margin">4dp</dimen>
 
     <dimen name="appbar_elevation">4dp</dimen>
 </resources>

@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -11,6 +12,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
 import android.support.v7.graphics.Palette;
 import android.text.Html;
@@ -20,7 +22,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.volley.VolleyError;
@@ -43,7 +47,13 @@ public class ArticleDetailFragment extends Fragment implements
     private Cursor mCursor;
     private long mItemId;
     private View mRootView;
-    private int mMutedColor = 0xFF333333;
+
+//    private int mMutedColor = 0xFF333333;
+    private int mDarkVibrantColor;
+    private int mDarkMutedColor;
+    private int mVibrantColor;
+
+
     private ObservableScrollView mScrollView;
     private DrawInsetsFrameLayout mDrawInsetsFrameLayout;
     private ColorDrawable mStatusBarColorDrawable;
@@ -54,6 +64,9 @@ public class ArticleDetailFragment extends Fragment implements
     private int mScrollY;
     private boolean mIsCard = false;
     private int mStatusBarFullOpacityBottom;
+
+    private FloatingActionButton mSharedFab;
+    private LinearLayout mMetaBar;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -128,7 +141,8 @@ public class ArticleDetailFragment extends Fragment implements
 
         mStatusBarColorDrawable = new ColorDrawable(0);
 
-        mRootView.findViewById(R.id.share_fab).setOnClickListener(new View.OnClickListener() {
+        mSharedFab = (FloatingActionButton) mRootView.findViewById(R.id.share_fab);
+        mSharedFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(Intent.createChooser(ShareCompat.IntentBuilder.from(getActivity())
@@ -137,6 +151,8 @@ public class ArticleDetailFragment extends Fragment implements
                         .getIntent(), getString(R.string.action_share)));
             }
         });
+
+        mMetaBar = (LinearLayout) mRootView.findViewById(R.id.meta_bar);
 
         bindViews();
         updateStatusBar();
@@ -150,9 +166,12 @@ public class ArticleDetailFragment extends Fragment implements
                     mStatusBarFullOpacityBottom - mTopInset * 3,
                     mStatusBarFullOpacityBottom - mTopInset);
             color = Color.argb((int) (255 * f),
-                    (int) (Color.red(mMutedColor) * 0.9),
-                    (int) (Color.green(mMutedColor) * 0.9),
-                    (int) (Color.blue(mMutedColor) * 0.9));
+//                    (int) (Color.red(mDarkMutedColor) * 0.9),
+//                    (int) (Color.green(mDarkMutedColor) * 0.9),
+//                    (int) (Color.blue(mDarkMutedColor) * 0.9));
+                    Color.red(mDarkVibrantColor),
+                    Color.red(mDarkVibrantColor),
+                    Color.blue(mDarkVibrantColor));
         }
         mStatusBarColorDrawable.setColor(color);
         mDrawInsetsFrameLayout.setInsetBackground(mStatusBarColorDrawable);
@@ -180,8 +199,8 @@ public class ArticleDetailFragment extends Fragment implements
         TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
-        TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
-        bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
+        final TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
+//        bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
         if (mCursor != null) {
             mRootView.setAlpha(0);
@@ -201,13 +220,25 @@ public class ArticleDetailFragment extends Fragment implements
                     .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
                         @Override
                         public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
+                            if(!ArticleDetailFragment.this.isAdded()) {
+                                return;
+                            }
+
                             Bitmap bitmap = imageContainer.getBitmap();
                             if (bitmap != null) {
-                                Palette p = Palette.generate(bitmap, 12);
-                                mMutedColor = p.getDarkMutedColor(0xFF333333);
+                                Palette p = Palette.from(bitmap).generate();
+                                mDarkMutedColor = p.getDarkMutedColor(getResources().getColor(R.color.theme_primary_dark));
+                                mDarkVibrantColor = p.getDarkVibrantColor(getResources().getColor(R.color.theme_primary));
+                                mVibrantColor = p.getVibrantColor(getResources().getColor(R.color.theme_accent));
+
                                 mPhotoView.setImageBitmap(imageContainer.getBitmap());
-                                mRootView.findViewById(R.id.meta_bar)
-                                        .setBackgroundColor(mMutedColor);
+                                mMetaBar.setBackgroundColor(mDarkVibrantColor);
+
+                                bodyView.setLinkTextColor(mVibrantColor);
+//                                mSharedFab.setBackgroundColor(mVibrantColor);
+                                mSharedFab.setBackgroundTintList(ColorStateList.valueOf(mVibrantColor));
+                                mSharedFab.setRippleColor(mDarkVibrantColor);
+
                                 updateStatusBar();
                             }
                         }
